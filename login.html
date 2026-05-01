@@ -2,28 +2,23 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>تطبيق الامتناع</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>تسجيل الدخول | تطبيق الامتناع</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #000000;
-      --surface: #121212;
-      --surface-light: #1e1e1e;
-      --border: rgba(255,255,255,0.08);
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
       --text: #ffffff;
-      --text-secondary: rgba(255,255,255,0.55);
+      --text-secondary: rgba(255, 255, 255, 0.6);
       --accent: #4f8cff;
-      --accent-glow: rgba(79,140,255,0.4);
-      --success: #2dd4bf;
+      --accent-glow: rgba(79, 140, 255, 0.4);
       --danger: #ff4d6a;
-      --warning: #fbbf24;
-      --radius: 28px;
-      --radius-sm: 18px;
+      --radius: 24px;
+      --radius-sm: 16px;
       --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      --tab-height: 70px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -32,478 +27,154 @@
       font-family: var(--font);
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       min-height: 100vh;
+      padding: 20px;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
     }
-    .app-container {
+    .login-container {
       width: 100%;
-      max-width: 500px;
-      min-height: 100vh;
+      max-width: 400px;
       display: flex;
       flex-direction: column;
-      background: var(--bg);
-      box-shadow: 0 0 60px rgba(0,0,0,0.8);
+      align-items: center;
+      gap: 30px;
     }
-    /* شاشة اختيار الصديق */
-    .selection-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(12px);
+    .logo-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: fadeIn 0.8s ease;
+    }
+    .logo-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 200;
-      padding: 20px;
-      animation: fadeIn 0.3s ease;
+      box-shadow: 0 10px 30px var(--accent-glow);
+      animation: float 3s ease-in-out infinite;
     }
-    .selection-card {
+    .logo-icon svg {
+      width: 36px;
+      height: 36px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .app-name {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .login-card {
+      width: 100%;
       background: var(--surface);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 25px 20px;
+      padding: 30px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      animation: slideUp 0.6s ease;
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .input-group .icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: var(--text-secondary);
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+    .input-group input {
       width: 100%;
-      max-width: 350px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-    }
-    .selection-card h2 {
-      margin-bottom: 20px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .friend-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 25px;
-    }
-    .friend-item {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
+      padding: 16px 48px 16px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-sm);
-      padding: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text);
-    }
-    .friend-item.selected {
-      border-color: var(--accent);
-      background: rgba(79,140,255,0.1);
-    }
-    .friend-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #a855f7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
       color: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s;
+      font-family: var(--font);
+    }
+    .input-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .input-group input:focus ~ .icon {
+      color: var(--accent);
     }
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
+      background: var(--accent);
       border: none;
       border-radius: var(--radius-sm);
-      font-weight: 600;
-      font-size: 16px;
+      color: #000;
+      font-weight: 700;
+      font-size: 17px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.3s;
+      margin-top: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
-    .btn:active { transform: scale(0.96); }
-    .btn:disabled { opacity: 0.5; pointer-events: none; }
-    .btn-primary { background: var(--accent); color: #000; }
-    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; }
-    .btn-success { background: var(--success); color: #000; }
-    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 20px 100px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    .btn:hover {
+      background: #6b9fff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px var(--accent-glow);
     }
-    .card {
-      background: var(--surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .greeting {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 5px;
-    }
-    .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #a855f7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 22px;
-      box-shadow: 0 4px 15px var(--accent-glow);
-    }
-    .streak-circle-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 10px 0;
-    }
-    .progress-ring {
-      position: relative;
-      width: 150px;
-      height: 150px;
-    }
-    .progress-ring svg {
-      transform: rotate(-90deg);
-      width: 100%;
-      height: 100%;
-    }
-    .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
-    .ring-fill {
-      fill: none;
-      stroke: var(--accent);
-      stroke-width: 10;
-      stroke-linecap: round;
-      transition: stroke-dasharray 1s ease;
-      filter: drop-shadow(0 0 8px var(--accent-glow));
-    }
-    .ring-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .ring-text .days { font-size: 52px; font-weight: 800; }
-    .ring-text .label { color: var(--text-secondary); font-size: 14px; }
-
-    .quick-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .mini-stat {
-      background: var(--surface-light);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      text-align: center;
-    }
-    .mini-stat .value { font-size: 22px; font-weight: 700; }
-    .mini-stat .desc { font-size: 11px; color: var(--text-secondary); }
-
-    .cal-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .cal-nav button {
-      background: var(--surface-light);
-      border: none;
-      color: #fff;
-      font-size: 20px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-    }
-    .month-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-    }
-    .day-cell {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px;
-      font-size: 15px;
-      background: var(--surface-light);
-      color: rgba(255,255,255,0.8);
-    }
-    .day-cell.clean { background: var(--success); color: #000; font-weight: 600; }
-    .day-cell.relapse { background: var(--danger); color: #fff; font-weight: 600; }
-    .day-cell.today { border: 2px solid var(--accent); font-weight: 700; }
-
-    .badge-container {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 10px 0;
-    }
-    .badge {
-      background: var(--surface-light);
-      border-radius: 30px;
-      padding: 10px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      opacity: 0.4;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge.earned {
-      opacity: 1;
-      background: rgba(79,140,255,0.12);
-      border: 1px solid var(--accent);
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
-    .pie-chart-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 20px 0;
-    }
-    .pie {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: conic-gradient(var(--success) 0deg, var(--danger) 0deg);
-      transition: background 0.5s;
-    }
-    .profile-card { text-align: center; }
-    .profile-card .avatar.large {
-      width: 80px;
-      height: 80px;
-      font-size: 36px;
-      margin: 0 auto 15px;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 500px;
-      height: var(--tab-height);
-      background: rgba(18,18,18,0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: var(--text-secondary);
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .nav-item.active { color: var(--accent); }
-    .nav-item svg {
-      width: 24px;
-      height: 24px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .feedback-message {
-      text-align: center;
-      font-size: 14px;
-      margin-top: 8px;
-      min-height: 20px;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    .btn:active { transform: scale(0.98); }
+    .error { color: var(--danger); font-size: 14px; text-align: center; min-height: 20px; }
+    .footer-text { color: var(--text-secondary); font-size: 13px; text-align: center; margin-top: 20px; opacity: 0.8; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
   </style>
 </head>
 <body>
-  <div class="app-container" id="appContainer">
-    <!-- شاشة اختيار الصديق -->
-    <div id="friendSelectionOverlay" class="selection-overlay">
-      <div class="selection-card">
-        <h2>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          اختر حسابك
-        </h2>
-        <div class="friend-list" id="friendListOverlay"></div>
-        <button class="btn btn-primary" id="confirmSelectionBtn" disabled>متابعة</button>
-        <button class="btn btn-outline" onclick="logout()" style="margin-top:10px;">تسجيل الخروج</button>
+  <div class="login-container">
+    <div class="logo-wrapper">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
       </div>
+      <h1 class="app-name">تطبيق الامتناع</h1>
     </div>
-
-    <!-- المحتوى الرئيسي -->
-    <div id="mainContent" class="main-content" style="display:none;">
-      <!-- الصفحة الرئيسية -->
-      <div id="homeScreen" class="screen active" style="display:flex; flex-direction:column; gap:20px;">
-        <div class="card">
-          <div class="greeting">
-            <div class="avatar" id="homeAvatar">A</div>
-            <div>
-              <div style="font-weight:600; font-size:20px;" id="homeName">Abdessamad</div>
-              <div style="color:var(--text-secondary); font-size:14px;">مرحباً بك</div>
-            </div>
-          </div>
-          <div class="streak-circle-container">
-            <div class="progress-ring">
-              <svg viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="42"/>
-                <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="42"/>
-              </svg>
-              <div class="ring-text">
-                <span class="days" id="streakDays">0</span>
-                <span class="label">/ 90 يوم</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="display:flex; gap:10px;">
-          <button class="btn btn-success" id="homeCleanBtn" onclick="logDay('clean')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            يوم نظيف
-          </button>
-          <button class="btn btn-danger" id="homeRelapseBtn" onclick="logDay('relapse')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            انتكاسة
-          </button>
-          <div class="feedback-message" id="homeFeedback" style="color:var(--danger);"></div>
-        </div>
-
-        <!-- الإحصائيات في الأسفل (بدون آخر 7 أيام) -->
-        <div class="card">
-          <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            ملخص سريع
-          </h3>
-          <div class="quick-stats">
-            <div class="mini-stat"><div class="value" id="totalCleanSmall">0</div><div class="desc">أيام نظيفة</div></div>
-            <div class="mini-stat"><div class="value" id="bestStreakSmall">0</div><div class="desc">أفضل سلسلة</div></div>
-            <div class="mini-stat"><div class="value" id="rateSmall">0%</div><div class="desc">التزام (30 يوم)</div></div>
-            <div class="mini-stat"><div class="value" id="relapsesSmall">0</div><div class="desc">انتكاسات</div></div>
-          </div>
-        </div>
+    <div class="login-card">
+      <div class="input-group">
+        <input type="email" id="email" placeholder="البريد الإلكتروني" dir="ltr" autocomplete="email">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
       </div>
-
-      <!-- التقويم -->
-      <div id="calendarScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
-        <div class="card">
-          <div class="cal-nav">
-            <button onclick="changeMonth(-1)">‹</button>
-            <span style="font-weight:600;" id="calMonthYear">May 2026</span>
-            <button onclick="changeMonth(1)">›</button>
-          </div>
-          <div class="weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
-          <div class="month-grid" id="monthGrid"></div>
-        </div>
-        <div class="card" style="display:flex; gap:10px;">
-          <button class="btn btn-success" id="calCleanBtn" onclick="logDay('clean')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>نظيف</button>
-          <button class="btn btn-danger" id="calRelapseBtn" onclick="logDay('relapse')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>انتكاسة</button>
-          <div class="feedback-message" id="calFeedback" style="color:var(--danger);"></div>
-        </div>
+      <div class="input-group">
+        <input type="password" id="password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
       </div>
-
-      <!-- الإحصائيات التفصيلية -->
-      <div id="statsScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
-        <div class="card">
-          <h2 style="display:flex; align-items:center; gap:10px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            الإنجازات
-          </h2>
-          <div class="badge-container">
-            <span class="badge" id="badge7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>7 Days</span>
-            <span class="badge" id="badge30"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>30 Days</span>
-            <span class="badge" id="badge90"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>90 Days</span>
-          </div>
-        </div>
-        <div class="card">
-          <h2 style="display:flex; align-items:center; gap:10px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Performance Summary</h2>
-          <div class="quick-stats">
-            <div class="mini-stat"><div class="value" id="statsTotalClean">0</div><div class="desc">Clean Days</div></div>
-            <div class="mini-stat"><div class="value" id="statsTotalRelapses">0</div><div class="desc">Relapses</div></div>
-            <div class="mini-stat"><div class="value" id="statsBestStreak">0</div><div class="desc">Best Streak</div></div>
-            <div class="mini-stat"><div class="value" id="statsCurrentStreak">0</div><div class="desc">Current Streak</div></div>
-          </div>
-          <div class="pie-chart-container"><div class="pie" id="pieChart"></div></div>
-          <p style="text-align:center; color:var(--text-secondary);">Clean Days Ratio</p>
-        </div>
-      </div>
-
-      <!-- الملف الشخصي -->
-      <div id="profileScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
-        <div class="card profile-card">
-          <div class="avatar large" id="profileAvatar">A</div>
-          <h2 id="profileName">Abdessamad</h2>
-          <p style="color:var(--text-secondary);">تطبيق الامتناع</p>
-          <button class="btn btn-outline" onclick="showFriendSelection()" style="margin-top:20px; width:100%;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            تغيير الحساب
-          </button>
-          <button class="btn btn-danger" onclick="logout()" style="margin-top:10px; width:100%;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            تسجيل الخروج
-          </button>
-        </div>
-      </div>
+      <button class="btn" onclick="login()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        تسجيل الدخول
+      </button>
+      <div class="error" id="loginError"></div>
     </div>
-
-    <!-- شريط التنقل السفلي -->
-    <div class="bottom-nav" id="bottomNav" style="display:none;">
-      <div class="nav-item active" data-screen="homeScreen" onclick="switchScreen('homeScreen')">
-        <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span>
-      </div>
-      <div class="nav-item" data-screen="calendarScreen" onclick="switchScreen('calendarScreen')">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Calendar</span>
-      </div>
-      <div class="nav-item" data-screen="statsScreen" onclick="switchScreen('statsScreen')">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Stats</span>
-      </div>
-      <div class="nav-item" data-screen="profileScreen" onclick="switchScreen('profileScreen')">
-        <svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span>
-      </div>
-    </div>
+    <p class="footer-text">شارك رحلتك نحو الأفضل</p>
   </div>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
@@ -516,281 +187,18 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    const friends = [
-      { id: 'friend1', name: 'Abdessamad' },
-      { id: 'friend2', name: 'Zakaria' },
-      { id: 'friend3', name: 'Adam' }
-    ];
-
-    let currentFriend = null;
-    let calMonth = new Date().getMonth();
-    let calYear = new Date().getFullYear();
-    let allEntries = {};
-
-    // الحصول على تاريخ اليوم بالتوقيت المغربي
-    function getMoroccoTodayString() {
+    auth.onAuthStateChanged(user => { if (user) window.location.href = 'index.html'; });
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const err = document.getElementById('loginError');
+      err.textContent = '';
+      if (!email || !password) { err.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور'; return; }
       try {
-        const now = new Date();
-        const moroccoTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Casablanca" }));
-        const y = moroccoTime.getFullYear();
-        const m = String(moroccoTime.getMonth() + 1).padStart(2, '0');
-        const d = String(moroccoTime.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
+        await auth.signInWithEmailAndPassword(email, password);
       } catch (e) {
-        // fallback to UTC+1
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const morocco = new Date(utc + (3600000));
-        const y = morocco.getFullYear();
-        const m = String(morocco.getMonth() + 1).padStart(2, '0');
-        const d = String(morocco.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
+        err.textContent = 'فشل الدخول: ' + e.message;
       }
-    }
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-      document.getElementById('appContainer').style.display = 'flex';
-      showFriendSelection();
-    });
-
-    function showFriendSelection() {
-      const overlay = document.getElementById('friendSelectionOverlay');
-      const list = document.getElementById('friendListOverlay');
-      const confirmBtn = document.getElementById('confirmSelectionBtn');
-      list.innerHTML = '';
-      currentFriend = null;
-      confirmBtn.disabled = true;
-
-      friends.forEach(f => {
-        const div = document.createElement('div');
-        div.className = 'friend-item';
-        div.innerHTML = `<div class="friend-avatar">${f.name[0]}</div><span>${f.name}</span>`;
-        div.onclick = () => {
-          document.querySelectorAll('#friendListOverlay .friend-item').forEach(el => el.classList.remove('selected'));
-          div.classList.add('selected');
-          currentFriend = f;
-          confirmBtn.disabled = false;
-        };
-        list.appendChild(div);
-      });
-
-      overlay.style.display = 'flex';
-      confirmBtn.onclick = async () => {
-        if (!currentFriend) return;
-        overlay.style.display = 'none';
-        document.getElementById('mainContent').style.display = 'flex';
-        document.getElementById('bottomNav').style.display = 'flex';
-        updateFriendUI();
-        calMonth = new Date().getMonth();
-        calYear = new Date().getFullYear();
-        await loadAllData();
-        switchScreen('homeScreen');
-      };
-    }
-
-    window.showFriendSelection = showFriendSelection;
-
-    function updateFriendUI() {
-      document.getElementById('homeAvatar').textContent = currentFriend.name[0];
-      document.getElementById('homeName').textContent = currentFriend.name;
-      document.getElementById('profileAvatar').textContent = currentFriend.name[0];
-      document.getElementById('profileName').textContent = currentFriend.name;
-    }
-
-    function switchScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-      document.getElementById(screenId).style.display = 'flex';
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.querySelector(`[data-screen="${screenId}"]`).classList.add('active');
-      if (screenId === 'calendarScreen') renderCalendar();
-    }
-
-    async function logout() {
-      await auth.signOut();
-    }
-
-    async function loadAllData() {
-      if (!auth.currentUser || !currentFriend) return;
-      const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
-      try {
-        const doc = await ref.get();
-        if (doc.exists) {
-          allEntries = doc.data().entries || {};
-        } else {
-          await ref.set({ name: currentFriend.name, entries: {} });
-          allEntries = {};
-        }
-        refreshAllViews();
-      } catch (error) {
-        console.error("خطأ في تحميل البيانات:", error);
-      }
-    }
-
-    // دالة تسجيل اليوم (مُحسَّنة)
-    async function logDay(status) {
-      const homeFeedback = document.getElementById('homeFeedback');
-      const calFeedback = document.getElementById('calFeedback');
-      homeFeedback.textContent = '';
-      calFeedback.textContent = '';
-
-      if (!auth.currentUser) {
-        homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.';
-        return;
-      }
-      if (!currentFriend) {
-        homeFeedback.textContent = 'الرجاء اختيار حساب من الشاشة الرئيسية.';
-        return;
-      }
-
-      const today = getMoroccoTodayString();
-      if (allEntries[today]) {
-        homeFeedback.textContent = 'تم تسجيل اليوم بالفعل.';
-        calFeedback.textContent = 'تم تسجيل اليوم بالفعل.';
-        return;
-      }
-
-      const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
-      try {
-        await ref.set({ entries: { [today]: status } }, { merge: true });
-        allEntries[today] = status;
-        refreshAllViews();
-        homeFeedback.textContent = status === 'clean' ? '✔ تم تسجيل يوم نظيف' : '✘ تم تسجيل انتكاسة';
-        homeFeedback.style.color = status === 'clean' ? 'var(--success)' : 'var(--danger)';
-        calFeedback.textContent = homeFeedback.textContent;
-        calFeedback.style.color = homeFeedback.style.color;
-      } catch (error) {
-        homeFeedback.textContent = 'حدث خطأ: ' + error.message;
-        calFeedback.textContent = 'حدث خطأ: ' + error.message;
-        console.error(error);
-      }
-    }
-
-    function refreshAllViews() {
-      updateHomeStats();
-      if (document.getElementById('calendarScreen').style.display === 'flex') renderCalendar();
-      updateStatsScreen();
-    }
-
-    function updateHomeStats() {
-      const today = getMoroccoTodayString();
-      const dates = Object.keys(allEntries).sort();
-      const cleanCount = dates.filter(d => allEntries[d] === 'clean').length;
-      const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
-      
-      let currentStreak = 0;
-      let check = today;
-      while (allEntries[check] === 'clean') {
-        currentStreak++;
-        const d = new Date(check);
-        d.setDate(d.getDate() - 1);
-        check = d.toISOString().split('T')[0];
-      }
-      
-      let bestStreak = 0, temp = 0;
-      dates.forEach(d => {
-        if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
-        else temp = 0;
-      });
-      
-      const last30 = [];
-      for (let i=0; i<30; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        last30.push(d.toISOString().split('T')[0]);
-      }
-      const committed = last30.filter(d => allEntries[d] === 'clean').length;
-      const rate = Math.round((committed/30)*100);
-
-      document.getElementById('streakDays').textContent = currentStreak;
-      document.getElementById('totalCleanSmall').textContent = cleanCount;
-      document.getElementById('bestStreakSmall').textContent = bestStreak;
-      document.getElementById('rateSmall').textContent = rate + '%';
-      document.getElementById('relapsesSmall').textContent = relapseCount;
-
-      const circumference = 2 * Math.PI * 42;
-      const maxDays = 90;
-      const progress = Math.min(currentStreak / maxDays, 1);
-      const ring = document.getElementById('ringFill');
-      ring.style.strokeDasharray = `${circumference * progress} ${circumference}`;
-      ring.style.stroke = currentStreak >= 90 ? '#fbbf24' : 'var(--accent)';
-
-      // تعطيل الأزرار إذا كان اليوم مسجلاً
-      const todayEntry = allEntries[today];
-      const homeClean = document.getElementById('homeCleanBtn');
-      const homeRelapse = document.getElementById('homeRelapseBtn');
-      const calClean = document.getElementById('calCleanBtn');
-      const calRelapse = document.getElementById('calRelapseBtn');
-      
-      if (homeClean) homeClean.disabled = !!todayEntry;
-      if (homeRelapse) homeRelapse.disabled = !!todayEntry;
-      if (calClean) calClean.disabled = !!todayEntry;
-      if (calRelapse) calRelapse.disabled = !!todayEntry;
-    }
-
-    function renderCalendar() {
-      document.getElementById('calMonthYear').textContent = new Date(calYear, calMonth).toLocaleDateString('en-US', {month:'long', year:'numeric'});
-      const firstDay = new Date(calYear, calMonth, 1).getDay();
-      const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-      const grid = document.getElementById('monthGrid');
-      grid.innerHTML = '';
-      for (let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
-      const today = getMoroccoTodayString();
-      for (let d=1; d<=daysInMonth; d++) {
-        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const cell = document.createElement('div'); cell.className='day-cell';
-        if (allEntries[dateStr] === 'clean') cell.classList.add('clean');
-        else if (allEntries[dateStr] === 'relapse') cell.classList.add('relapse');
-        if (dateStr === today) cell.classList.add('today');
-        cell.textContent = d;
-        grid.appendChild(cell);
-      }
-    }
-
-    function changeMonth(delta) {
-      calMonth += delta;
-      if (calMonth < 0) { calMonth = 11; calYear--; }
-      else if (calMonth > 11) { calMonth = 0; calYear++; }
-      renderCalendar();
-    }
-
-    function updateStatsScreen() {
-      const dates = Object.keys(allEntries).sort();
-      const cleanCount = dates.filter(d => allEntries[d] === 'clean').length;
-      const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
-      const total = cleanCount + relapseCount || 1;
-      const cleanDeg = (cleanCount / total) * 360;
-      
-      document.getElementById('statsTotalClean').textContent = cleanCount;
-      document.getElementById('statsTotalRelapses').textContent = relapseCount;
-      
-      let bestStreak = 0, temp = 0;
-      dates.forEach(d => {
-        if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
-        else temp = 0;
-      });
-      document.getElementById('statsBestStreak').textContent = bestStreak;
-      
-      let currentStreak = 0;
-      let check = getMoroccoTodayString();
-      while (allEntries[check] === 'clean') {
-        currentStreak++;
-        const d = new Date(check); d.setDate(d.getDate() - 1);
-        check = d.toISOString().split('T')[0];
-      }
-      document.getElementById('statsCurrentStreak').textContent = currentStreak;
-
-      document.getElementById('badge7').classList.toggle('earned', currentStreak >= 7);
-      document.getElementById('badge30').classList.toggle('earned', currentStreak >= 30);
-      document.getElementById('badge90').classList.toggle('earned', currentStreak >= 90);
-
-      const pie = document.getElementById('pieChart');
-      pie.style.background = `conic-gradient(var(--success) ${cleanDeg}deg, var(--danger) 0deg)`;
     }
   </script>
 </body>
