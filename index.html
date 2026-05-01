@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <title>تطبيق الامتناع</title>
+  
+  <!-- أيقونات التطبيق (PWA) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -345,10 +352,7 @@
       margin-top: 8px;
       min-height: 20px;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -504,7 +508,7 @@
   </div>
 
   <script>
-    // ==================== إعدادات Firebase مع الرابط الصحيح ====================
+    // إعدادات Firebase مع رابط Realtime Database
     const firebaseConfig = {
       apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
       authDomain: "no-fap-89212.firebaseapp.com",
@@ -515,7 +519,6 @@
       measurementId: "G-XHZBRYVF5B",
       databaseURL: "https://no-fap-89212-default-rtdb.europe-west1.firebasedatabase.app/"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
@@ -537,22 +540,12 @@
     ];
 
     function getMoroccoTodayString() {
-      try {
-        const now = new Date();
-        const moroccoTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Casablanca" }));
-        const y = moroccoTime.getFullYear();
-        const m = String(moroccoTime.getMonth() + 1).padStart(2, '0');
-        const d = String(moroccoTime.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      } catch (e) {
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const morocco = new Date(utc + 3600000);
-        const y = morocco.getFullYear();
-        const m = String(morocco.getMonth() + 1).padStart(2, '0');
-        const d = String(morocco.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
+      const now = new Date();
+      const moroccoTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Casablanca" }));
+      const y = moroccoTime.getFullYear();
+      const m = String(moroccoTime.getMonth() + 1).padStart(2, '0');
+      const d = String(moroccoTime.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
 
     auth.onAuthStateChanged(async (user) => {
@@ -571,7 +564,6 @@
       list.innerHTML = '';
       currentFriend = null;
       confirmBtn.disabled = true;
-
       friends.forEach(f => {
         const div = document.createElement('div');
         div.className = 'friend-item';
@@ -584,7 +576,6 @@
         };
         list.appendChild(div);
       });
-
       overlay.style.display = 'flex';
       confirmBtn.onclick = async () => {
         if (!currentFriend) return;
@@ -598,7 +589,6 @@
         switchScreen('homeScreen');
       };
     }
-
     window.showFriendSelection = showFriendSelection;
 
     function updateFriendUI() {
@@ -620,7 +610,6 @@
       await auth.signOut();
     }
 
-    // ==================== Realtime Database Operations ====================
     async function loadAllData() {
       if (!auth.currentUser || !currentFriend) return;
       const ref = db.ref(`users/${auth.currentUser.uid}/friends/${currentFriend.id}/entries`);
@@ -636,7 +625,6 @@
     async function logDay(status) {
       const homeFeedback = document.getElementById('homeFeedback');
       const calFeedback = document.getElementById('calFeedback');
-
       if (!auth.currentUser) {
         homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.';
         calFeedback.textContent = homeFeedback.textContent;
@@ -652,7 +640,7 @@
       const currentStatus = allEntries[today] || null;
       const ref = db.ref(`users/${auth.currentUser.uid}/friends/${currentFriend.id}/entries/${today}`);
 
-      // تراجع: إزالة اليوم المسجل بنفس الحالة
+      // تراجع
       if (currentStatus === status) {
         setButtonsDisabled(true);
         homeFeedback.textContent = 'جاري إزالة التسجيل...';
@@ -675,7 +663,7 @@
         return;
       }
 
-      // تسجيل أو تغيير الحالة
+      // تسجيل جديد
       setButtonsDisabled(true);
       homeFeedback.textContent = 'جاري التسجيل...';
       calFeedback.textContent = 'جاري التسجيل...';
@@ -697,14 +685,10 @@
     }
 
     function setButtonsDisabled(disabled) {
-      const homeClean = document.getElementById('homeCleanBtn');
-      const homeRelapse = document.getElementById('homeRelapseBtn');
-      const calClean = document.getElementById('calCleanBtn');
-      const calRelapse = document.getElementById('calRelapseBtn');
-      if (homeClean) homeClean.disabled = disabled;
-      if (homeRelapse) homeRelapse.disabled = disabled;
-      if (calClean) calClean.disabled = disabled;
-      if (calRelapse) calRelapse.disabled = disabled;
+      document.getElementById('homeCleanBtn').disabled = disabled;
+      document.getElementById('homeRelapseBtn').disabled = disabled;
+      document.getElementById('calCleanBtn').disabled = disabled;
+      document.getElementById('calRelapseBtn').disabled = disabled;
     }
 
     function refreshAllViews() {
@@ -718,22 +702,18 @@
       const dates = Object.keys(allEntries).sort();
       const cleanCount = dates.filter(d => allEntries[d] === 'clean').length;
       const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
-      
-      let currentStreak = 0;
-      let check = today;
+      let currentStreak = 0, check = today;
       while (allEntries[check] === 'clean') {
         currentStreak++;
         const d = new Date(check);
         d.setDate(d.getDate() - 1);
         check = d.toISOString().split('T')[0];
       }
-      
       let bestStreak = 0, temp = 0;
       dates.forEach(d => {
         if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
         else temp = 0;
       });
-      
       const last30 = [];
       for (let i=0; i<30; i++) {
         const d = new Date();
@@ -756,7 +736,6 @@
       ring.style.strokeDasharray = `${circumference * progress} ${circumference}`;
       ring.style.stroke = currentStreak >= 90 ? '#fbbf24' : 'var(--accent)';
 
-      // تحديث الأزرار ونصوصها
       const todayEntry = allEntries[today];
       const homeCleanBtn = document.getElementById('homeCleanBtn');
       const homeRelapseBtn = document.getElementById('homeRelapseBtn');
@@ -817,7 +796,7 @@
             const status = allEntries[today];
             if (!status) logDay('clean');
             else if (status === 'clean') logDay('relapse');
-            else logDay('relapse'); // إذا انتكاسة، الضغط عليها مجددا يزيل
+            else logDay('relapse');
           }
         };
         grid.appendChild(cell);
@@ -837,33 +816,25 @@
       const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
       const total = cleanCount + relapseCount || 1;
       const cleanDeg = (cleanCount / total) * 360;
-      
       document.getElementById('statsTotalClean').textContent = cleanCount;
       document.getElementById('statsTotalRelapses').textContent = relapseCount;
-      
       let bestStreak = 0, temp = 0;
       dates.forEach(d => {
         if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
         else temp = 0;
       });
       document.getElementById('statsBestStreak').textContent = bestStreak;
-      
-      let currentStreak = 0;
-      let check = getMoroccoTodayString();
+      let currentStreak = 0, check = getMoroccoTodayString();
       while (allEntries[check] === 'clean') {
         currentStreak++;
-        const d = new Date(check);
-        d.setDate(d.getDate() - 1);
+        const d = new Date(check); d.setDate(d.getDate() - 1);
         check = d.toISOString().split('T')[0];
       }
       document.getElementById('statsCurrentStreak').textContent = currentStreak;
-
       document.getElementById('badge7').classList.toggle('earned', currentStreak >= 7);
       document.getElementById('badge30').classList.toggle('earned', currentStreak >= 30);
       document.getElementById('badge90').classList.toggle('earned', currentStreak >= 90);
-
-      const pie = document.getElementById('pieChart');
-      pie.style.background = `conic-gradient(var(--success) ${cleanDeg}deg, var(--danger) 0deg)`;
+      document.getElementById('pieChart').style.background = `conic-gradient(var(--success) ${cleanDeg}deg, var(--danger) 0deg)`;
     }
   </script>
 </body>
