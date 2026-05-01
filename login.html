@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>تسجيل الدخول | تطبيق الامتناع</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --accent: #4f8cff;
+      --accent-glow: rgba(79, 140, 255, 0.4);
+      --danger: #ff4d6a;
+      --radius: 24px;
+      --radius-sm: 16px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* شعار التطبيق */
+    .logo-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .logo-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px var(--accent-glow);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .logo-icon svg {
+      width: 36px;
+      height: 36px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .app-name {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* بطاقة الدخول */
+    .login-card {
+      width: 100%;
+      background: var(--surface);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      animation: slideUp 0.6s ease;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .input-group .icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: var(--text-secondary);
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 16px 48px 16px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s;
+      font-family: var(--font);
+    }
+
+    .input-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .input-group input:focus ~ .icon {
+      color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #000;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover {
+      background: #6b9fff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px var(--accent-glow);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 14px;
+      margin-top: 16px;
+      text-align: center;
+      min-height: 20px;
+      animation: shake 0.5s ease;
+    }
+
+    .footer-text {
+      color: var(--text-secondary);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 20px;
+      opacity: 0.8;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <!-- شعار التطبيق -->
+    <div class="logo-wrapper">
+      <div class="logo-icon">
+        <!-- أيقونة القمر أو درع -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
+        </svg>
+      </div>
+      <h1 class="app-name">تطبيق الامتناع</h1>
+    </div>
+
+    <!-- بطاقة تسجيل الدخول -->
+    <div class="login-card">
+      <div class="input-group">
+        <input type="email" id="email" placeholder="البريد الإلكتروني" dir="ltr" autocomplete="email">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <circle cx="12" cy="16" r="1"/>
+        </svg>
+      </div>
+
+      <button class="btn" onclick="login()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        تسجيل الدخول
+      </button>
+
+      <div class="error" id="loginError"></div>
+    </div>
+
+    <p class="footer-text">شارك رحلتك نحو الأفضل</p>
+  </div>
+
+  <script>
+    // إعدادات Firebase (نفس مشروعك)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
+      authDomain: "no-fap-89212.firebaseapp.com",
+      projectId: "no-fap-89212",
+      storageBucket: "no-fap-89212.firebasestorage.app",
+      messagingSenderId: "521405887476",
+      appId: "1:521405887476:web:293f88ba47b06af6b5bfa1",
+      measurementId: "G-XHZBRYVF5B"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // إذا كان المستخدم مسجلاً بالفعل، انتقل إلى index.html
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('loginError');
+      
+      errorEl.textContent = '';
+      
+      if (!email || !password) {
+        errorEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور';
+        return;
+      }
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        // سيتم التوجيه عن طريق onAuthStateChanged أعلاه
+      } catch (error) {
+        let message = 'حدث خطأ أثناء تسجيل الدخول';
+        if (error.code === 'auth/invalid-email') message = 'صيغة البريد الإلكتروني غير صحيحة';
+        else if (error.code === 'auth/user-not-found') message = 'البريد الإلكتروني غير مسجل';
+        else if (error.code === 'auth/wrong-password') message = 'كلمة المرور غير صحيحة';
+        else if (error.code === 'auth/invalid-credential') message = 'البريد أو كلمة المرور خطأ';
+        errorEl.textContent = message;
+      }
+    }
+  </script>
+</body>
+</html>
