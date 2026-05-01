@@ -6,7 +6,7 @@
   <title>تطبيق الامتناع</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     :root {
       --bg: #000000;
@@ -504,6 +504,7 @@
   </div>
 
   <script>
+    // ==================== إعدادات Firebase مع الرابط الصحيح ====================
     const firebaseConfig = {
       apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
       authDomain: "no-fap-89212.firebaseapp.com",
@@ -511,11 +512,13 @@
       storageBucket: "no-fap-89212.firebasestorage.app",
       messagingSenderId: "521405887476",
       appId: "1:521405887476:web:293f88ba47b06af6b5bfa1",
-      measurementId: "G-XHZBRYVF5B"
+      measurementId: "G-XHZBRYVF5B",
+      databaseURL: "https://no-fap-89212-default-rtdb.europe-west1.firebasedatabase.app/"
     };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db = firebase.database();
 
     const friends = [
       { id: 'friend1', name: 'Abdessamad' },
@@ -544,7 +547,7 @@
       } catch (e) {
         const now = new Date();
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const morocco = new Date(utc + (3600000));
+        const morocco = new Date(utc + 3600000);
         const y = morocco.getFullYear();
         const m = String(morocco.getMonth() + 1).padStart(2, '0');
         const d = String(morocco.getDate()).padStart(2, '0');
@@ -617,31 +620,22 @@
       await auth.signOut();
     }
 
+    // ==================== Realtime Database Operations ====================
     async function loadAllData() {
       if (!auth.currentUser || !currentFriend) return;
-      const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
+      const ref = db.ref(`users/${auth.currentUser.uid}/friends/${currentFriend.id}/entries`);
       try {
-        const doc = await ref.get();
-        if (doc.exists) {
-          allEntries = doc.data().entries || {};
-        } else {
-          await ref.set({ name: currentFriend.name, entries: {} });
-          allEntries = {};
-        }
+        const snapshot = await ref.once('value');
+        allEntries = snapshot.val() || {};
         refreshAllViews();
       } catch (error) {
         console.error("خطأ في تحميل البيانات:", error);
       }
     }
 
-    // دالة تسجيل اليوم مع إمكانية التراجع
     async function logDay(status) {
       const homeFeedback = document.getElementById('homeFeedback');
       const calFeedback = document.getElementById('calFeedback');
-      const homeCleanText = document.getElementById('homeCleanText');
-      const homeRelapseText = document.getElementById('homeRelapseText');
-      const calCleanText = document.getElementById('calCleanText');
-      const calRelapseText = document.getElementById('calRelapseText');
 
       if (!auth.currentUser) {
         homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.';
@@ -656,21 +650,15 @@
 
       const today = getMoroccoTodayString();
       const currentStatus = allEntries[today] || null;
+      const ref = db.ref(`users/${auth.currentUser.uid}/friends/${currentFriend.id}/entries/${today}`);
 
-      // إذا كان اليوم مسجلاً بنفس الحالة، نقوم بحذف التسجيل (تراجع)
+      // تراجع: إزالة اليوم المسجل بنفس الحالة
       if (currentStatus === status) {
-        // تعطيل الأزرار مؤقتاً أثناء الحذف
         setButtonsDisabled(true);
         homeFeedback.textContent = 'جاري إزالة التسجيل...';
         calFeedback.textContent = 'جاري إزالة التسجيل...';
-        
-        const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
         try {
-          // حذف المفتاح من قاعدة البيانات
-          await ref.update({
-            [`entries.${today}`]: firebase.firestore.FieldValue.delete()
-          });
-          // حذف محلياً
+          await ref.remove();
           delete allEntries[today];
           refreshAllViews();
           homeFeedback.textContent = 'تمت إزالة تسجيل اليوم';
@@ -678,40 +666,32 @@
           calFeedback.textContent = 'تمت إزالة تسجيل اليوم';
           calFeedback.style.color = 'var(--text-secondary)';
         } catch (error) {
-          // فشل الحذف - نعيد الحالة السابقة
-          allEntries[today] = currentStatus; // نعيدها لأنها لم تتغير
+          allEntries[today] = currentStatus;
           refreshAllViews();
           homeFeedback.textContent = 'حدث خطأ أثناء الإزالة: ' + error.message;
           calFeedback.textContent = homeFeedback.textContent;
-          console.error(error);
         }
         setButtonsDisabled(false);
         return;
       }
 
-      // إذا كان اليوم مسجلاً بحالة مختلفة (مثلاً relapse ونضغط clean) نغير الحالة
-      // أو إذا لم يكن مسجلاً نقوم بإضافته
+      // تسجيل أو تغيير الحالة
       setButtonsDisabled(true);
       homeFeedback.textContent = 'جاري التسجيل...';
       calFeedback.textContent = 'جاري التسجيل...';
-      
-      const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
       try {
-        await ref.set({ entries: { [today]: status } }, { merge: true });
+        await ref.set(status);
         allEntries[today] = status;
         refreshAllViews();
         homeFeedback.textContent = status === 'clean' ? '✔ تم تسجيل يوم نظيف' : '✘ تم تسجيل انتكاسة';
         homeFeedback.style.color = status === 'clean' ? 'var(--success)' : 'var(--danger)';
         calFeedback.textContent = homeFeedback.textContent;
         calFeedback.style.color = homeFeedback.style.color;
-        // الأزرار ستبقى معطلة لأن اليوم مُسجل الآن، سيتم تحديثها في refresh
       } catch (error) {
-        // فشل - إعادة الحالة السابقة
         allEntries[today] = currentStatus;
         refreshAllViews();
         homeFeedback.textContent = 'حدث خطأ: ' + error.message;
         calFeedback.textContent = 'حدث خطأ: ' + error.message;
-        console.error(error);
         setButtonsDisabled(false);
       }
     }
@@ -725,7 +705,6 @@
       if (homeRelapse) homeRelapse.disabled = disabled;
       if (calClean) calClean.disabled = disabled;
       if (calRelapse) calRelapse.disabled = disabled;
-      // النصوص ترجع بعد التحديث
     }
 
     function refreshAllViews() {
@@ -777,7 +756,7 @@
       ring.style.strokeDasharray = `${circumference * progress} ${circumference}`;
       ring.style.stroke = currentStreak >= 90 ? '#fbbf24' : 'var(--accent)';
 
-      // تحديث حالة الأزرار والنصوص
+      // تحديث الأزرار ونصوصها
       const todayEntry = allEntries[today];
       const homeCleanBtn = document.getElementById('homeCleanBtn');
       const homeRelapseBtn = document.getElementById('homeRelapseBtn');
@@ -789,23 +768,10 @@
       const calRelapseText = document.getElementById('calRelapseText');
 
       if (todayEntry) {
-        // اليوم مسجل: الأزرار معطلة لكن مع إمكانية النقر على نفس الحالة للتراجع
-        if (homeCleanBtn) homeCleanBtn.disabled = true;
-        if (homeRelapseBtn) homeRelapseBtn.disabled = true;
-        if (calCleanBtn) calCleanBtn.disabled = true;
-        if (calRelapseBtn) calRelapseBtn.disabled = true;
-        
-        // لكننا نريد ترك الأزرار قابلة للضغط (تجاوز التعطيل) عند التراجع. 
-        // التعطيل يمنع الضغط، لذلك نجعل الأزرار ممكنة ولكن نغير سلوكها.
-        // للتغلب على ذلك، نزيل التعطيل ونعتمد على دالة logDay التي تتعامل مع الحالات.
-        // لذا نعيد تمكين الأزرار لكن مع تحديث مظهرها (تظل باللون نفسه).
-        // يمكن إظهارها بشكل عادي لتسمح بالنقر.
-        if (homeCleanBtn) homeCleanBtn.disabled = false;
-        if (homeRelapseBtn) homeRelapseBtn.disabled = false;
-        if (calCleanBtn) calCleanBtn.disabled = false;
-        if (calRelapseBtn) calRelapseBtn.disabled = false;
-        
-        // تحديث النصوص لتوحي بإمكانية الإزالة
+        homeCleanBtn.disabled = false;
+        homeRelapseBtn.disabled = false;
+        calCleanBtn.disabled = false;
+        calRelapseBtn.disabled = false;
         if (todayEntry === 'clean') {
           homeCleanText.textContent = 'تم ✔ (انقر للإزالة)';
           homeRelapseText.textContent = 'انتكاسة';
@@ -818,11 +784,10 @@
           calCleanText.textContent = 'نظيف';
         }
       } else {
-        // لا يوجد تسجيل: تمكين الأزرار وإظهار النص الطبيعي
-        if (homeCleanBtn) homeCleanBtn.disabled = false;
-        if (homeRelapseBtn) homeRelapseBtn.disabled = false;
-        if (calCleanBtn) calCleanBtn.disabled = false;
-        if (calRelapseBtn) calRelapseBtn.disabled = false;
+        homeCleanBtn.disabled = false;
+        homeRelapseBtn.disabled = false;
+        calCleanBtn.disabled = false;
+        calRelapseBtn.disabled = false;
         homeCleanText.textContent = 'يوم نظيف';
         homeRelapseText.textContent = 'انتكاسة';
         calCleanText.textContent = 'نظيف';
@@ -848,19 +813,11 @@
         if (dateStr === today) cell.classList.add('today');
         cell.textContent = d;
         cell.onclick = () => {
-          // عند النقر على خلية اليوم، نؤدي نفس سلوك الزر
           if (dateStr === today) {
             const status = allEntries[today];
-            if (!status) {
-              // إذا لم يُسجل، نجعله نظيفاً
-              logDay('clean');
-            } else if (status === 'clean') {
-              // إذا كان نظيفاً، نحوله لانتكاسة
-              logDay('relapse');
-            } else {
-              // إذا كان انتكاسة، نزيله (تراجع)
-              logDay('relapse');
-            }
+            if (!status) logDay('clean');
+            else if (status === 'clean') logDay('relapse');
+            else logDay('relapse'); // إذا انتكاسة، الضغط عليها مجددا يزيل
           }
         };
         grid.appendChild(cell);
