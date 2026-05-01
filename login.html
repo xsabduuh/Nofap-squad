@@ -4,12 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>تسجيل الدخول | تطبيق الامتناع</title>
-  
-  <!-- أيقونات التطبيق (PWA) -->
+
+  <!-- أيقونة SVG مضمّنة (احتياطية) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
+  
+  <!-- أيقونة آبل (Apple Touch Icon) بحجم 180x180 -->
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect width='100' height='100' fill='black' rx='20'/><circle cx='50' cy='50' r='40' fill='black' stroke='url(%23g)' stroke-width='7'/><path d='M50 20 L56 36 L74 37 L61 49 L66 67 L50 57 L34 67 L39 49 L26 37 L44 36 Z' fill='url(%23g)'/></svg>">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="الامتناع">
+
+  <!-- بيان تطبيق الويب (Manifest) مضمّن -->
+  <script>
+    const manifest = {
+      name: "تطبيق الامتناع",
+      short_name: "الامتناع",
+      start_url: ".",
+      display: "standalone",
+      background_color: "#000000",
+      theme_color: "#4f8cff",
+      description: "تطبيق الامتناع المشترك",
+      icons: [
+        {
+          src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect width='100' height='100' fill='black' rx='20'/><circle cx='50' cy='50' r='40' fill='black' stroke='url(%23g)' stroke-width='7'/><path d='M50 20 L56 36 L74 37 L61 49 L66 67 L50 57 L34 67 L39 49 L26 37 L44 36 Z' fill='url(%23g)'/></svg>",
+          sizes: "180x180",
+          type: "image/svg+xml",
+          purpose: "any maskable"
+        }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+  </script>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -183,7 +212,6 @@
     <p class="footer-text">شارك رحلتك نحو الأفضل</p>
   </div>
   <script>
-    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
       authDomain: "no-fap-89212.firebaseapp.com",
@@ -196,7 +224,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     auth.onAuthStateChanged(user => { if (user) window.location.href = 'index.html'; });
-
     async function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
