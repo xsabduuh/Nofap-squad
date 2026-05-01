@@ -25,9 +25,7 @@
       --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
       --tab-height: 70px;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -39,7 +37,6 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
-
     .app-container {
       width: 100%;
       max-width: 500px;
@@ -49,7 +46,6 @@
       background: var(--bg);
       box-shadow: 0 0 60px rgba(0,0,0,0.8);
     }
-
     /* شاشة اختيار الصديق */
     .selection-overlay {
       position: fixed;
@@ -128,11 +124,13 @@
       justify-content: center;
       gap: 8px;
     }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.5; pointer-events: none; }
     .btn-primary { background: var(--accent); color: #000; }
-    .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
     .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+    .btn-success { background: var(--success); color: #000; }
+    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
 
-    /* المحتوى الرئيسي */
     .main-content {
       flex: 1;
       overflow-y: auto;
@@ -324,10 +322,6 @@
       font-size: 36px;
       margin: 0 auto 15px;
     }
-    .btn-success { background: var(--success); color: #000; }
-    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-    .btn:active { transform: scale(0.96); }
-    .btn:disabled { opacity: 0.5; pointer-events: none; }
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -365,6 +359,12 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .feedback-message {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 8px;
+      min-height: 20px;
+    }
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -373,7 +373,7 @@
 </head>
 <body>
   <div class="app-container" id="appContainer">
-    <!-- شاشة اختيار الصديق تظهر أولاً -->
+    <!-- شاشة اختيار الصديق -->
     <div id="friendSelectionOverlay" class="selection-overlay">
       <div class="selection-card">
         <h2>
@@ -391,9 +391,9 @@
       </div>
     </div>
 
-    <!-- المحتوى الرئيسي بعد الاختيار -->
+    <!-- المحتوى الرئيسي -->
     <div id="mainContent" class="main-content" style="display:none;">
-      <!-- الصفحات كما السابق -->
+      <!-- الصفحة الرئيسية -->
       <div id="homeScreen" class="screen active" style="display:flex; flex-direction:column; gap:20px;">
         <div class="card">
           <div class="greeting">
@@ -415,13 +415,8 @@
               </div>
             </div>
           </div>
-          <div class="quick-stats">
-            <div class="mini-stat"><div class="value" id="totalCleanSmall">0</div><div class="desc">أيام نظيفة</div></div>
-            <div class="mini-stat"><div class="value" id="bestStreakSmall">0</div><div class="desc">أفضل سلسلة</div></div>
-            <div class="mini-stat"><div class="value" id="rateSmall">0%</div><div class="desc">التزام (30 يوم)</div></div>
-            <div class="mini-stat"><div class="value" id="relapsesSmall">0</div><div class="desc">انتكاسات</div></div>
-          </div>
         </div>
+
         <div class="card">
           <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -429,6 +424,7 @@
           </h3>
           <div class="weekly-bars" id="weeklyBars"></div>
         </div>
+
         <div class="card" style="display:flex; gap:10px;">
           <button class="btn btn-success" id="homeCleanBtn" onclick="logDay('clean')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -438,9 +434,25 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             انتكاسة
           </button>
+          <div class="feedback-message" id="homeFeedback" style="color:var(--danger);"></div>
+        </div>
+
+        <!-- الإحصائيات في الأسفل (كارد منفصل) -->
+        <div class="card">
+          <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            ملخص سريع
+          </h3>
+          <div class="quick-stats">
+            <div class="mini-stat"><div class="value" id="totalCleanSmall">0</div><div class="desc">أيام نظيفة</div></div>
+            <div class="mini-stat"><div class="value" id="bestStreakSmall">0</div><div class="desc">أفضل سلسلة</div></div>
+            <div class="mini-stat"><div class="value" id="rateSmall">0%</div><div class="desc">التزام (30 يوم)</div></div>
+            <div class="mini-stat"><div class="value" id="relapsesSmall">0</div><div class="desc">انتكاسات</div></div>
+          </div>
         </div>
       </div>
 
+      <!-- التقويم -->
       <div id="calendarScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
         <div class="card">
           <div class="cal-nav">
@@ -454,9 +466,11 @@
         <div class="card" style="display:flex; gap:10px;">
           <button class="btn btn-success" id="calCleanBtn" onclick="logDay('clean')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>نظيف</button>
           <button class="btn btn-danger" id="calRelapseBtn" onclick="logDay('relapse')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>انتكاسة</button>
+          <div class="feedback-message" id="calFeedback" style="color:var(--danger);"></div>
         </div>
       </div>
 
+      <!-- الإحصائيات التفصيلية -->
       <div id="statsScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
         <div class="card">
           <h2 style="display:flex; align-items:center; gap:10px;">
@@ -482,6 +496,7 @@
         </div>
       </div>
 
+      <!-- الملف الشخصي -->
       <div id="profileScreen" class="screen" style="display:none; flex-direction:column; gap:20px;">
         <div class="card profile-card">
           <div class="avatar large" id="profileAvatar">A</div>
@@ -541,10 +556,25 @@
     let calYear = new Date().getFullYear();
     let allEntries = {};
 
+    // الحصول على تاريخ اليوم بالتوقيت المغربي
     function getMoroccoTodayString() {
-      const now = new Date();
-      const moroccoTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Casablanca" }));
-      return `${moroccoTime.getFullYear()}-${String(moroccoTime.getMonth()+1).padStart(2,'0')}-${String(moroccoTime.getDate()).padStart(2,'0')}`;
+      try {
+        const now = new Date();
+        const moroccoTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Casablanca" }));
+        const y = moroccoTime.getFullYear();
+        const m = String(moroccoTime.getMonth() + 1).padStart(2, '0');
+        const d = String(moroccoTime.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      } catch (e) {
+        // fallback to UTC+1
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const morocco = new Date(utc + (3600000));
+        const y = morocco.getFullYear();
+        const m = String(morocco.getMonth() + 1).padStart(2, '0');
+        const d = String(morocco.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
     }
 
     auth.onAuthStateChanged(async (user) => {
@@ -553,7 +583,6 @@
         return;
       }
       document.getElementById('appContainer').style.display = 'flex';
-      // عرض نافذة اختيار الصديق دائماً عند الدخول
       showFriendSelection();
     });
 
@@ -579,7 +608,7 @@
       });
 
       overlay.style.display = 'flex';
-      confirmBtn.onclick = () => {
+      confirmBtn.onclick = async () => {
         if (!currentFriend) return;
         overlay.style.display = 'none';
         document.getElementById('mainContent').style.display = 'flex';
@@ -587,12 +616,12 @@
         updateFriendUI();
         calMonth = new Date().getMonth();
         calYear = new Date().getFullYear();
-        loadAllData();
+        await loadAllData();
         switchScreen('homeScreen');
       };
     }
 
-    window.showFriendSelection = showFriendSelection; // للوصول من أزرار أخرى
+    window.showFriendSelection = showFriendSelection;
 
     function updateFriendUI() {
       document.getElementById('homeAvatar').textContent = currentFriend.name[0];
@@ -616,27 +645,58 @@
     async function loadAllData() {
       if (!auth.currentUser || !currentFriend) return;
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
-      const doc = await ref.get();
-      if (doc.exists) {
-        allEntries = doc.data().entries || {};
-      } else {
-        await ref.set({ name: currentFriend.name, entries: {} });
-        allEntries = {};
+      try {
+        const doc = await ref.get();
+        if (doc.exists) {
+          allEntries = doc.data().entries || {};
+        } else {
+          await ref.set({ name: currentFriend.name, entries: {} });
+          allEntries = {};
+        }
+        refreshAllViews();
+      } catch (error) {
+        console.error("خطأ في تحميل البيانات:", error);
       }
-      refreshAllViews();
     }
 
+    // دالة تسجيل اليوم (مُحسَّنة)
     async function logDay(status) {
-      if (!auth.currentUser || !currentFriend) return;
-      const today = getMoroccoTodayString();
-      if (allEntries[today]) {
-        alert('تم تسجيل اليوم بالفعل');
+      // إظهار رسالة للمستخدم
+      const homeFeedback = document.getElementById('homeFeedback');
+      const calFeedback = document.getElementById('calFeedback');
+      homeFeedback.textContent = '';
+      calFeedback.textContent = '';
+
+      if (!auth.currentUser) {
+        homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.';
         return;
       }
+      if (!currentFriend) {
+        homeFeedback.textContent = 'الرجاء اختيار حساب من الشاشة الرئيسية.';
+        return;
+      }
+
+      const today = getMoroccoTodayString();
+      if (allEntries[today]) {
+        homeFeedback.textContent = 'تم تسجيل اليوم بالفعل.';
+        calFeedback.textContent = 'تم تسجيل اليوم بالفعل.';
+        return;
+      }
+
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(currentFriend.id);
-      await ref.set({ entries: { [today]: status } }, { merge: true });
-      allEntries[today] = status;
-      refreshAllViews();
+      try {
+        await ref.set({ entries: { [today]: status } }, { merge: true });
+        allEntries[today] = status;
+        refreshAllViews();
+        homeFeedback.textContent = status === 'clean' ? '✔ تم تسجيل يوم نظيف' : '✘ تم تسجيل انتكاسة';
+        homeFeedback.style.color = status === 'clean' ? 'var(--success)' : 'var(--danger)';
+        calFeedback.textContent = homeFeedback.textContent;
+        calFeedback.style.color = homeFeedback.style.color;
+      } catch (error) {
+        homeFeedback.textContent = 'حدث خطأ: ' + error.message;
+        calFeedback.textContent = 'حدث خطأ: ' + error.message;
+        console.error(error);
+      }
     }
 
     function refreshAllViews() {
@@ -689,11 +749,17 @@
       ring.style.strokeDasharray = `${circumference * progress} ${circumference}`;
       ring.style.stroke = currentStreak >= 90 ? '#fbbf24' : 'var(--accent)';
 
+      // تعطيل الأزرار إذا كان اليوم مسجلاً
       const todayEntry = allEntries[today];
-      document.getElementById('homeCleanBtn').disabled = !!todayEntry;
-      document.getElementById('homeRelapseBtn').disabled = !!todayEntry;
-      document.getElementById('calCleanBtn') && (document.getElementById('calCleanBtn').disabled = !!todayEntry);
-      document.getElementById('calRelapseBtn') && (document.getElementById('calRelapseBtn').disabled = !!todayEntry);
+      const homeClean = document.getElementById('homeCleanBtn');
+      const homeRelapse = document.getElementById('homeRelapseBtn');
+      const calClean = document.getElementById('calCleanBtn');
+      const calRelapse = document.getElementById('calRelapseBtn');
+      
+      if (homeClean) homeClean.disabled = !!todayEntry;
+      if (homeRelapse) homeRelapse.disabled = !!todayEntry;
+      if (calClean) calClean.disabled = !!todayEntry;
+      if (calRelapse) calRelapse.disabled = !!todayEntry;
     }
 
     function updateWeeklyChart() {
