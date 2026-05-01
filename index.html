@@ -4,12 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <title>تطبيق الامتناع</title>
-  
-  <!-- أيقونات التطبيق (PWA) -->
+
+  <!-- أيقونات PWA كاملة (النجمة المتدرجة) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><circle cx='50' cy='50' r='46' fill='black' stroke='url(%23g)' stroke-width='8'/><path d='M50 15 L57 36 L80 37 L63 52 L69 75 L50 63 L31 75 L37 52 L20 37 L43 36 Z' fill='url(%23g)'/></svg>">
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect width='100' height='100' fill='black' rx='20'/><circle cx='50' cy='50' r='40' fill='black' stroke='url(%23g)' stroke-width='7'/><path d='M50 20 L56 36 L74 37 L61 49 L66 67 L50 57 L34 67 L39 49 L26 37 L44 36 Z' fill='url(%23g)'/></svg>">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="الامتناع">
+
+  <!-- بيان التطبيق المضمّن -->
+  <script>
+    const manifest = {
+      name: "تطبيق الامتناع",
+      short_name: "الامتناع",
+      start_url: ".",
+      display: "standalone",
+      background_color: "#000000",
+      theme_color: "#4f8cff",
+      description: "تطبيق الامتناع المشترك",
+      icons: [
+        {
+          src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f8cff'/><stop offset='100%25' stop-color='%23a855f7'/></linearGradient></defs><rect width='100' height='100' fill='black' rx='20'/><circle cx='50' cy='50' r='40' fill='black' stroke='url(%23g)' stroke-width='7'/><path d='M50 20 L56 36 L74 37 L61 49 L66 67 L50 57 L34 67 L39 49 L26 37 L44 36 Z' fill='url(%23g)'/></svg>",
+          sizes: "180x180",
+          type: "image/svg+xml",
+          purpose: "any maskable"
+        }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+  </script>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -508,7 +535,6 @@
   </div>
 
   <script>
-    // إعدادات Firebase مع رابط Realtime Database
     const firebaseConfig = {
       apiKey: "AIzaSyBHGo9I1XEjweaw-9iu-7hDT1Sz5GQ1vLo",
       authDomain: "no-fap-89212.firebaseapp.com",
@@ -528,7 +554,6 @@
       { id: 'friend2', name: 'Zakaria' },
       { id: 'friend3', name: 'Adam' }
     ];
-
     let currentFriend = null;
     let calMonth = new Date().getMonth();
     let calYear = new Date().getFullYear();
@@ -549,10 +574,7 @@
     }
 
     auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
+      if (!user) { window.location.href = 'login.html'; return; }
       document.getElementById('appContainer').style.display = 'flex';
       showFriendSelection();
     });
@@ -606,9 +628,7 @@
       if (screenId === 'calendarScreen') renderCalendar();
     }
 
-    async function logout() {
-      await auth.signOut();
-    }
+    async function logout() { await auth.signOut(); }
 
     async function loadAllData() {
       if (!auth.currentUser || !currentFriend) return;
@@ -617,30 +637,19 @@
         const snapshot = await ref.once('value');
         allEntries = snapshot.val() || {};
         refreshAllViews();
-      } catch (error) {
-        console.error("خطأ في تحميل البيانات:", error);
-      }
+      } catch (error) { console.error("خطأ في تحميل البيانات:", error); }
     }
 
     async function logDay(status) {
       const homeFeedback = document.getElementById('homeFeedback');
       const calFeedback = document.getElementById('calFeedback');
-      if (!auth.currentUser) {
-        homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.';
-        calFeedback.textContent = homeFeedback.textContent;
-        return;
-      }
-      if (!currentFriend) {
-        homeFeedback.textContent = 'الرجاء اختيار حساب.';
-        calFeedback.textContent = homeFeedback.textContent;
-        return;
-      }
+      if (!auth.currentUser) { homeFeedback.textContent = 'يرجى تسجيل الدخول أولاً.'; calFeedback.textContent = homeFeedback.textContent; return; }
+      if (!currentFriend) { homeFeedback.textContent = 'الرجاء اختيار حساب.'; calFeedback.textContent = homeFeedback.textContent; return; }
 
       const today = getMoroccoTodayString();
       const currentStatus = allEntries[today] || null;
       const ref = db.ref(`users/${auth.currentUser.uid}/friends/${currentFriend.id}/entries/${today}`);
 
-      // تراجع
       if (currentStatus === status) {
         setButtonsDisabled(true);
         homeFeedback.textContent = 'جاري إزالة التسجيل...';
@@ -656,14 +665,12 @@
         } catch (error) {
           allEntries[today] = currentStatus;
           refreshAllViews();
-          homeFeedback.textContent = 'حدث خطأ أثناء الإزالة: ' + error.message;
-          calFeedback.textContent = homeFeedback.textContent;
+          homeFeedback.textContent = 'حدث خطأ: ' + error.message;
         }
         setButtonsDisabled(false);
         return;
       }
 
-      // تسجيل جديد
       setButtonsDisabled(true);
       homeFeedback.textContent = 'جاري التسجيل...';
       calFeedback.textContent = 'جاري التسجيل...';
@@ -679,8 +686,6 @@
         allEntries[today] = currentStatus;
         refreshAllViews();
         homeFeedback.textContent = 'حدث خطأ: ' + error.message;
-        calFeedback.textContent = 'حدث خطأ: ' + error.message;
-        setButtonsDisabled(false);
       }
     }
 
@@ -703,35 +708,19 @@
       const cleanCount = dates.filter(d => allEntries[d] === 'clean').length;
       const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
       let currentStreak = 0, check = today;
-      while (allEntries[check] === 'clean') {
-        currentStreak++;
-        const d = new Date(check);
-        d.setDate(d.getDate() - 1);
-        check = d.toISOString().split('T')[0];
-      }
+      while (allEntries[check] === 'clean') { currentStreak++; const d = new Date(check); d.setDate(d.getDate()-1); check = d.toISOString().split('T')[0]; }
       let bestStreak = 0, temp = 0;
-      dates.forEach(d => {
-        if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
-        else temp = 0;
-      });
-      const last30 = [];
-      for (let i=0; i<30; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        last30.push(d.toISOString().split('T')[0]);
-      }
-      const committed = last30.filter(d => allEntries[d] === 'clean').length;
+      dates.forEach(d => { if (allEntries[d]==='clean') { temp++; if (temp>bestStreak) bestStreak=temp; } else temp=0; });
+      const last30 = []; for (let i=0; i<30; i++) { const d = new Date(); d.setDate(d.getDate()-i); last30.push(d.toISOString().split('T')[0]); }
+      const committed = last30.filter(d => allEntries[d]==='clean').length;
       const rate = Math.round((committed/30)*100);
-
       document.getElementById('streakDays').textContent = currentStreak;
       document.getElementById('totalCleanSmall').textContent = cleanCount;
       document.getElementById('bestStreakSmall').textContent = bestStreak;
-      document.getElementById('rateSmall').textContent = rate + '%';
+      document.getElementById('rateSmall').textContent = rate+'%';
       document.getElementById('relapsesSmall').textContent = relapseCount;
-
       const circumference = 2 * Math.PI * 42;
-      const maxDays = 90;
-      const progress = Math.min(currentStreak / maxDays, 1);
+      const progress = Math.min(currentStreak/90, 1);
       const ring = document.getElementById('ringFill');
       ring.style.strokeDasharray = `${circumference * progress} ${circumference}`;
       ring.style.stroke = currentStreak >= 90 ? '#fbbf24' : 'var(--accent)';
@@ -745,12 +734,8 @@
       const homeRelapseText = document.getElementById('homeRelapseText');
       const calCleanText = document.getElementById('calCleanText');
       const calRelapseText = document.getElementById('calRelapseText');
-
       if (todayEntry) {
-        homeCleanBtn.disabled = false;
-        homeRelapseBtn.disabled = false;
-        calCleanBtn.disabled = false;
-        calRelapseBtn.disabled = false;
+        homeCleanBtn.disabled = false; homeRelapseBtn.disabled = false; calCleanBtn.disabled = false; calRelapseBtn.disabled = false;
         if (todayEntry === 'clean') {
           homeCleanText.textContent = 'تم ✔ (انقر للإزالة)';
           homeRelapseText.textContent = 'انتكاسة';
@@ -763,10 +748,7 @@
           calCleanText.textContent = 'نظيف';
         }
       } else {
-        homeCleanBtn.disabled = false;
-        homeRelapseBtn.disabled = false;
-        calCleanBtn.disabled = false;
-        calRelapseBtn.disabled = false;
+        homeCleanBtn.disabled = false; homeRelapseBtn.disabled = false; calCleanBtn.disabled = false; calRelapseBtn.disabled = false;
         homeCleanText.textContent = 'يوم نظيف';
         homeRelapseText.textContent = 'انتكاسة';
         calCleanText.textContent = 'نظيف';
@@ -778,12 +760,12 @@
       const monthYearStr = arabicMonths[calMonth] + ' ' + calYear;
       document.getElementById('calMonthYear').textContent = monthYearStr;
       const firstDay = new Date(calYear, calMonth, 1).getDay();
-      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
       const grid = document.getElementById('monthGrid');
       grid.innerHTML = '';
-      for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+      for (let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
       const today = getMoroccoTodayString();
-      for (let d = 1; d <= daysInMonth; d++) {
+      for (let d=1; d<=daysInMonth; d++) {
         const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const cell = document.createElement('div');
         cell.className = 'day-cell';
@@ -805,35 +787,28 @@
 
     function changeMonth(delta) {
       calMonth += delta;
-      if (calMonth < 0) { calMonth = 11; calYear--; }
-      else if (calMonth > 11) { calMonth = 0; calYear++; }
+      if (calMonth < 0) { calMonth=11; calYear--; }
+      else if (calMonth > 11) { calMonth=0; calYear++; }
       renderCalendar();
     }
 
     function updateStatsScreen() {
       const dates = Object.keys(allEntries).sort();
-      const cleanCount = dates.filter(d => allEntries[d] === 'clean').length;
-      const relapseCount = dates.filter(d => allEntries[d] === 'relapse').length;
-      const total = cleanCount + relapseCount || 1;
-      const cleanDeg = (cleanCount / total) * 360;
+      const cleanCount = dates.filter(d => allEntries[d]==='clean').length;
+      const relapseCount = dates.filter(d => allEntries[d]==='relapse').length;
+      const total = cleanCount+relapseCount||1;
+      const cleanDeg = (cleanCount/total)*360;
       document.getElementById('statsTotalClean').textContent = cleanCount;
       document.getElementById('statsTotalRelapses').textContent = relapseCount;
-      let bestStreak = 0, temp = 0;
-      dates.forEach(d => {
-        if (allEntries[d] === 'clean') { temp++; if (temp > bestStreak) bestStreak = temp; }
-        else temp = 0;
-      });
+      let bestStreak=0, temp=0;
+      dates.forEach(d => { if(allEntries[d]==='clean'){temp++; if(temp>bestStreak)bestStreak=temp;} else temp=0; });
       document.getElementById('statsBestStreak').textContent = bestStreak;
-      let currentStreak = 0, check = getMoroccoTodayString();
-      while (allEntries[check] === 'clean') {
-        currentStreak++;
-        const d = new Date(check); d.setDate(d.getDate() - 1);
-        check = d.toISOString().split('T')[0];
-      }
+      let currentStreak=0, check=getMoroccoTodayString();
+      while(allEntries[check]==='clean'){ currentStreak++; const d=new Date(check); d.setDate(d.getDate()-1); check=d.toISOString().split('T')[0]; }
       document.getElementById('statsCurrentStreak').textContent = currentStreak;
-      document.getElementById('badge7').classList.toggle('earned', currentStreak >= 7);
-      document.getElementById('badge30').classList.toggle('earned', currentStreak >= 30);
-      document.getElementById('badge90').classList.toggle('earned', currentStreak >= 90);
+      document.getElementById('badge7').classList.toggle('earned', currentStreak>=7);
+      document.getElementById('badge30').classList.toggle('earned', currentStreak>=30);
+      document.getElementById('badge90').classList.toggle('earned', currentStreak>=90);
       document.getElementById('pieChart').style.background = `conic-gradient(var(--success) ${cleanDeg}deg, var(--danger) 0deg)`;
     }
   </script>
